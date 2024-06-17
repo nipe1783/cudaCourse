@@ -15,11 +15,28 @@ void matrixMultP(const float* M, const float* N, float* P, int width){
             int NIndex = k * width + col; // Flattened index of matrix N
             pValue += M[MIndex] * N[NIndex];
         }
-        printf("row: %d, col: %d, P Value: %f\n", row, col, pValue);
         P[pIndex] = pValue;
     }
+    printf("Thread (%d, %d) computed element (%d, %d)\n", threadIdx.x, threadIdx.y, row, col);
+}
 
-    
+//assumes square matrices. Each thread computes one row of P.
+__global__
+void matrixMultRow(const float* M, const float* N, float* P, int width){
+    int row = blockIdx.x * blockDim.x + threadIdx.x;
+    if (row < width){
+        for (int col = 0; col < width; col++){
+            float pValue = 0;
+            int pIndex = row * width + col; // Flattened index of matrix P
+            for (int k = 0; k < width; k++){
+                int MIndex = row * width + k; // Flattened index of matrix M
+                int NIndex = k * width + col; // Flattened index of matrix N
+                pValue += M[MIndex] * N[NIndex];
+            }
+            P[pIndex] = pValue;
+        }
+    }
+    printf("Thread (%d, %d) computed row %d\n", threadIdx.x, threadIdx.y, row);
 }
 
 int main(void){
@@ -30,39 +47,14 @@ int main(void){
     float *h_M = (float*)malloc(size);
     float *h_N = (float*)malloc(size);
     float *h_P = (float*)malloc(size);
-    h_M[0] = 1;
-    h_M[1] = 1;
-    h_M[2] = 1;
-    h_M[3] = 1;
-    h_M[4] = 1;
-    h_M[5] = 1;
-    h_M[6] = 1;
-    h_M[7] = 1;
-    h_M[8] = 1;
-    h_M[9] = 1;
-    h_M[10] = 1;
-    h_M[11] = 1;
-    h_M[12] = 1;
-    h_M[13] = 1;
-    h_M[14] = 1;
-    h_M[15] = 1;
-
-    h_N[0] = 1;
-    h_N[1] = 2;
-    h_N[2] = 3;
-    h_N[3] = 4;
-    h_N[4] = 2;
-    h_N[5] = 3;
-    h_N[6] = 4;
-    h_N[7] = 5;
-    h_N[8] = 3;
-    h_N[9] = 4;
-    h_N[10] = 5;
-    h_N[11] = 6;
-    h_N[12] = 4;
-    h_N[13] = 5;
-    h_N[14] = 6;
-    h_N[15] = 7;
+    
+    // populate matrices with random floats:
+    for (int i = 0; i < width; i++){
+        for (int j = 0; j < width; j++){
+            h_M[i * width + j] = (float)rand() / RAND_MAX;
+            h_N[i * width + j] = (float)rand() / RAND_MAX;
+        }
+    }
 
 
     // initialize device matrices
@@ -102,12 +94,43 @@ int main(void){
     printf("Test PASSED\n");
 
     // cleanup
-    free(h_M);
-    free(h_N);
-    free(h_P);
+    
+
+
+    // each thread computes one row of P
+    // set dimension of grid (number of blocks)
+    dim3 dimGridR(2, 1, 1); // Splits matrix into 2 sections
+    dim3 dimBlockR(2, 1, 1); // each thread computes 1 row of P
+
+    // launch kernel
+    matrixMultRow<<<dimGridR, dimBlockR>>>(d_M, d_N, d_P, width);
+
+    // copy result back to host
+    cudaMemcpy(h_P, d_P, size, cudaMemcpyDeviceToHost);
+
+    // verify result
+    for (int i = 0; i < width; i++){
+        for (int j = 0; j < width; j++){
+            float pValue = 0;
+            for (int k = 0; k < width; k++){
+                pValue += h_M[i * width + k] * h_N[k * width + j];
+            }
+            if (fabs(pValue - h_P[i * width + j]) > 1e-5){
+                fprintf(stderr, "Result verification failed at element (%d, %d)!\n", i, j);
+                exit(EXIT_FAILURE);
+            }
+        }
+    }
+
+    printf("Test PASSED\n");
+
+
     cudaFree(d_M);
     cudaFree(d_N);
     cudaFree(d_P);
+    free(h_M);
+    free(h_N);
+    free(h_P);
 
 
 }
