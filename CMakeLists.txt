@@ -9,6 +9,7 @@ find_package(Eigen3 REQUIRED)
 find_package(Boost REQUIRED)
 find_package(yaml-cpp REQUIRED)
 find_package(Python3 COMPONENTS Development NumPy REQUIRED)
+find_package(OpenCV REQUIRED)
 
 include_directories(
     include 
@@ -35,16 +36,33 @@ add_library(cudaCourse_lib ${SOURCE_FILES})
 # Add your CUDA executable
 add_executable(main vectorAdd.cu)
 
+
+
 # Link the library and other dependencies with the CUDA executable
-target_link_libraries(main
+target_link_libraries(
+    main
     cudaCourse_lib
     ${CUDA_LIBRARIES}
     ${Boost_LIBRARIES}
     ${EIGEN3_LIBRARIES}
     yaml-cpp
-    Python3::Python
-    Python3::NumPy
+    ${OpenCV_LIBS}
 )
 
 # Ensure CUDA separable compilation
 set_target_properties(main PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+
+add_executable(imageGray imageGray.cu)
+
+# Ensure CUDA separable compilation
+set_target_properties(imageGray PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+
+target_link_libraries(
+    imageGray
+    cudaCourse_lib
+    ${CUDA_LIBRARIES}
+    ${Boost_LIBRARIES}
+    ${EIGEN3_LIBRARIES}
+    yaml-cpp
+    ${OpenCV_LIBS}
+)
