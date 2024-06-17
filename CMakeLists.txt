@@ -54,9 +54,6 @@ set_target_properties(main PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 
 add_executable(imageGray imageGray.cu)
 
-# Ensure CUDA separable compilation
-set_target_properties(imageGray PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-
 target_link_libraries(
     imageGray
     cudaCourse_lib
@@ -66,3 +63,21 @@ target_link_libraries(
     yaml-cpp
     ${OpenCV_LIBS}
 )
+
+# Ensure CUDA separable compilation
+set_target_properties(imageGray PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+
+add_executable(matrixMult matrixMult.cu)
+
+target_link_libraries(
+    matrixMult
+    cudaCourse_lib
+    ${CUDA_LIBRARIES}
+    ${Boost_LIBRARIES}
+    ${EIGEN3_LIBRARIES}
+    yaml-cpp
+    ${OpenCV_LIBS}
+)
+
+# Ensure CUDA separable compilation
+set_target_properties(matrixMult PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
