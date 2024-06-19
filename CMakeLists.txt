@@ -81,3 +81,51 @@ target_link_libraries(
 
 # Ensure CUDA separable compilation
 set_target_properties(matrixMult PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+
+
+# Ch 7 Convolution:
+add_executable(convolutionBasic ch7_convolution/convolutionBasic.cu)
+
+target_link_libraries(
+    convolutionBasic
+    cudaCourse_lib
+    ${CUDA_LIBRARIES}
+    ${Boost_LIBRARIES}
+    ${EIGEN3_LIBRARIES}
+    yaml-cpp
+    ${OpenCV_LIBS}
+)
+
+# Ensure CUDA separable compilation
+set_target_properties(convolutionBasic PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+
+add_executable(convolutionConstantMemory ch7_convolution/convolutionConstantMemory.cu)
+
+target_link_libraries(
+    convolutionConstantMemory
+    cudaCourse_lib
+    ${CUDA_LIBRARIES}
+    ${Boost_LIBRARIES}
+    ${EIGEN3_LIBRARIES}
+    yaml-cpp
+    ${OpenCV_LIBS}
+)
+
+# Ensure CUDA separable compilation
+set_target_properties(convolutionConstantMemory PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+
+
+add_executable(convolutionTiled ch7_convolution/convolutionTiled.cu)
+
+target_link_libraries(
+    convolutionTiled
+    cudaCourse_lib
+    ${CUDA_LIBRARIES}
+    ${Boost_LIBRARIES}
+    ${EIGEN3_LIBRARIES}
+    yaml-cpp
+    ${OpenCV_LIBS}
+)
+
+# Ensure CUDA separable compilation
+set_target_properties(convolutionTiled PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
